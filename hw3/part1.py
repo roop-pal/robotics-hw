@@ -21,9 +21,6 @@ def mouseHandler(event,x,y,flags,param):
 
 cap = cv2.VideoCapture(0) 
 
-# Open webcam
-cap = cv2.VideoCapture(0)
-
 # Capture a frame
 ret, frame = cap.read()
 
