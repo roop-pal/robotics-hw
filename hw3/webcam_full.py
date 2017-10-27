@@ -1,9 +1,20 @@
-import argparse
 from copy import deepcopy as copy
 import cv2
 import numpy as np
 
 pts_src = np.empty((0, 2), dtype = np.int32)
+
+def my_fwd(x):
+    print "fwd", x
+
+def my_bwd(x):
+    print "bwd", x
+    
+def my_right(x):
+    print "right", x
+    
+def my_left(x):
+    print "left", x
 
 def mouseHandler(event, x, y, flags, param):
     global pts_src
@@ -112,7 +123,7 @@ def main():
     #cv2.imshow("mask", mask)
 
     final = filter(mask)
-    (cx, cy, area) = findLargestBlob(final)
+    (cx, cy, p_area) = findLargestBlob(final)
     res = cv2.bitwise_and(frame, frame, mask=mask)
     cv2.circle(res, (cx, cy), 3, (0, 255, 255), 5, cv2.LINE_AA)
     cv2.imshow("centroid", res)
@@ -126,12 +137,21 @@ def main():
         (cx, cy, area) = findLargestBlob(final)
         cv2.circle(frame, (cx, cy), 3, (0, 255, 255), 5, cv2.LINE_AA)
         cv2.imshow("centroid", frame)
-    
+        
+        if (len(frame[0]) / 2 - cx > 20):
+            my_left(len(frame[0]) / 2 - cx)
+        elif (len(frame[0]) / 2 - cx < -20):
+            my_right(cx - len(frame[0]) / 2)
+        elif ((p_area - area) / p_area > 0.1):
+            my_fwd((p_area - area) / p_area)
+        elif ((p_area - area) / p_area < -0.1):
+            my_bwd((area - p_area) / p_area)
+        else:
+            print "dont move"
 
         # hit the quit key "q" to exit and close everything
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        
     cap.release()
     cv2.destroyAllWindows()
 
