@@ -50,6 +50,8 @@ for i in pts_src:
  
 cv2.rectangle(im_temp, (min_x,min_y), (max_x, max_y), (0, 255, 255))
 cv2.imshow("image", im_temp)
+# cv2.imshow("hsv", hsv)
+
 
 m = 0
 for i in range(min_x, max_x + 1):
@@ -62,11 +64,29 @@ lower_color = np.array([avg-10, 100, 100])
 upper_color = np.array([avg+10, 255, 255])
 
 mask = cv2.inRange(hsv, lower_color, upper_color)
+res = cv2.bitwise_and(frame, frame, mask=mask)
 
 cv2.imshow("mask", mask)
 
+# Filtering
 blur = cv2.GaussianBlur(mask, (5,5), 0)
-cv2.imshow("filter", blur)
+kernel = np.ones((5,5),np.uint8)
+final = cv2.morphologyEx(blur, cv2.MORPH_OPEN, kernel)
 
+cv2.imshow("filter", final)
+
+x_avg = 0
+y_avg = 0
+for i in range(len(final)):
+    for j in range(len(final[i])):
+        if final[i][j]:
+            x_avg += j
+            y_avg += i
+            
+x_avg /= len(final[0])
+y_avg /= len(final)
+
+
+cv2.imshow("mask", res)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
