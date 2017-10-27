@@ -4,12 +4,16 @@
 # see Chapter 1 in:
 #https://media.readthedocs.org/pdf/opencv-python-tutroals/latest/opencv-python-tutroals.pdf
 
-import numpy as np
 import argparse
-#import imutils
+from copy import deepcopy as copy
+
 import cv2
+
+import numpy as np
+
+
+#import imutils
 #from test.test_typechecks import Integer
- 
 def mouseHandler(event, x, y, flags, param):
     global im_temp, pts_src
     if event == cv2.EVENT_LBUTTONDOWN:
@@ -60,7 +64,7 @@ for i in range(min_x, max_x + 1):
 avg = m * 1.0 / ((max_x - min_x + 1) * (max_y - min_y + 1))
 print avg
 
-lower_color = np.array([avg-10, 100, 100])
+lower_color = np.array([avg-10, 50, 50])
 upper_color = np.array([avg+10, 255, 255])
 
 mask = cv2.inRange(hsv, lower_color, upper_color)
@@ -86,7 +90,23 @@ for i in range(len(final)):
 x_avg /= len(final[0])
 y_avg /= len(final)
 
+im2, contours, hierarchy = cv2.findContours(final,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+biggest_contour = 0
+biggest_area = -1
+for i in contours:
+    if cv2.contourArea(i) > biggest_area:
+        biggest_area = cv2.contourArea(i)
+        biggest_contour = copy(i)
+
+M = cv2.moments(biggest_contour)
+
+cx = int(M['m10']/M['m00'])
+cy = int(M['m01']/M['m00'])
+
+cv2.circle(res, (cx, cy), 3, (0, 255, 255), 5, cv2.LINE_AA)
 
 cv2.imshow("mask", res)
+
 cv2.waitKey(0)
 cv2.destroyAllWindows()
