@@ -39,18 +39,14 @@ def getCorners(pts_src):
 
     return [min_x, max_x, min_y, max_y]
 
-def getMaskFromRegion(hsv, min_x, max_x, min_y, max_y):
+def getHSVThreshold(hsv, min_x, max_x, min_y, max_y):
     m = 0
     for i in range(min_x, max_x + 1):
         for j in range(min_y, max_y + 1):
             m += hsv[j][i][0]
     m = m * 1.0 / ((max_x - min_x + 1) * (max_y - min_y + 1))
-
-    lower_color = np.array([m-10, 50, 50])
-    upper_color = np.array([m+10, 255, 255])
-
-    mask = cv2.inRange(hsv, lower_color, upper_color)
-    return mask
+    
+    return m
 
 
 def filter(mask):
@@ -109,29 +105,33 @@ def main():
     # cv2.waitKey(0)
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    mask = getMaskFromRegion(hsv, min_x, max_x, min_y, max_y)
+    hsv_mean = getHSVThreshold(hsv, min_x, max_x, min_y, max_y)
+    lower_color = np.array([hsv_mean-10, 50, 50])
+    upper_color = np.array([hsv_mean+10, 255, 255])
+    mask = cv2.inRange(hsv, lower_color, upper_color)
     #cv2.imshow("mask", mask)
 
     final = filter(mask)
     (cx, cy, area) = findLargestBlob(final)
     res = cv2.bitwise_and(frame, frame, mask=mask)
     cv2.circle(res, (cx, cy), 3, (0, 255, 255), 5, cv2.LINE_AA)
-    #cv2.imshow("centroid", res)
+    cv2.imshow("centroid", res)
     #cv2.waitKey(0)
 
     while (cap.isOpened()):
-        
-        # hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        ret, frame = cap.read()
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, lower_color, upper_color)
+        final = filter(mask)
+        (cx, cy, area) = findLargestBlob(final)
+        cv2.circle(frame, (cx, cy), 3, (0, 255, 255), 5, cv2.LINE_AA)
+        cv2.imshow("centroid", frame)
+    
 
-        # if ret == True:
-        #     cv2.imshow('frame',frame)
-        
         # hit the quit key "q" to exit and close everything
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        else:
-            break
-
+        
     cap.release()
     cv2.destroyAllWindows()
 
