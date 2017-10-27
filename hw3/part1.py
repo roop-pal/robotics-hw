@@ -50,7 +50,6 @@ for i in pts_src:
  
 cv2.rectangle(im_temp, (min_x,min_y), (max_x, max_y), (0, 255, 255))
 cv2.imshow("image", im_temp)
-cv2.imshow("hsv", hsv)
 
 m = 0
 for i in range(min_x, max_x + 1):
@@ -59,11 +58,15 @@ for i in range(min_x, max_x + 1):
 avg = m * 1.0 / ((max_x - min_x + 1) * (max_y - min_y + 1))
 print avg
 
-lower_color = np.array([avg-10, 50, 50])
+lower_color = np.array([avg-10, 100, 100])
 upper_color = np.array([avg+10, 255, 255])
 
 mask = cv2.inRange(hsv, lower_color, upper_color)
 
 cv2.imshow("mask", mask)
+
+blur = cv2.GaussianBlur(mask, (5,5), 0)
+cv2.imshow("filter", blur)
+
 cv2.waitKey(0)
 cv2.destroyAllWindows()
