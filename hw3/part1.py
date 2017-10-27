@@ -8,7 +8,7 @@ import numpy as np
 import argparse
 #import imutils
 import cv2
-from test.test_typechecks import Integer
+#from test.test_typechecks import Integer
  
 def mouseHandler(event, x, y, flags, param):
     global im_temp, pts_src
@@ -28,15 +28,14 @@ ret, frame = cap.read()
 # Create a named window
  
 cv2.namedWindow("image", 1)
-im_temp = frame
+im_temp = frame.copy()
 pts_src = np.empty((0, 2), dtype = np.int32)
 cv2.setMouseCallback("image", mouseHandler)
  
 cv2.imshow("image", im_temp)
 cv2.waitKey(0)
-cv2.destroyAllWindows()
 
-im_temp = cv2.cvtColor(im_temp, cv2.COLOR_BGR2HSV)
+hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
 min_x = float("inf")
 max_x = -1
@@ -49,20 +48,22 @@ for i in pts_src:
     min_y = min(i[1], min_y)
     max_y = max(i[1], max_y)
  
-a = np.array([[[0,1,2], [3,4,5]],
-              [[6,7,8], [9,10,11]]])
+cv2.rectangle(im_temp, (min_x,min_y), (max_x, max_y), (0, 255, 255))
+cv2.imshow("image", im_temp)
+cv2.imshow("hsv", hsv)
 
 m = 0
 for i in range(min_x, max_x + 1):
     for j in range(min_y, max_y + 1):
-        m += im_temp[i][j][0]
-print(m * 1.0 / ((max_x - min_x + 1) * (max_y - min_y + 1)))
+        m += hsv[j][i][0]
+avg = m * 1.0 / ((max_x - min_x + 1) * (max_y - min_y + 1))
+print avg
 
-lower_color = np.array([m - 10, 100, 100])
-upper_color = np.array([m + 10, 255, 255])
+lower_color = np.array([avg-10, 50, 50])
+upper_color = np.array([avg+10, 255, 255])
 
-mask = cv2.inRange(im_temp, lower_color, upper_color)
+mask = cv2.inRange(hsv, lower_color, upper_color)
 
-cv2.imshow("image", mask)
+cv2.imshow("mask", mask)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
