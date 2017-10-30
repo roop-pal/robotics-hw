@@ -9,22 +9,27 @@ from time import sleep
 
 pts_src = np.empty((0, 2), dtype = np.int32)
 
+# Move forward by 1 encoding
 def my_fwd(x):
     enc_tgt(1, 1, 3)
     fwd()
     
+# Move backward by 1 encoding
 def my_bwd(x):
     enc_tgt(1, 1, 3)
     bwd()
-    
+
+# Turn right by 1 encoding
 def my_right(x):
     enc_tgt(1, 1 ,1)
     right_rot()    
 
+# Turn left by 1 encoding
 def my_left(x):
     enc_tgt(1, 1, 1)
     left_rot()
 
+# Mouse handler for select rectangular region
 def mouseHandler(event, x, y, flags, param):
     global pts_src
     im_temp = param[0]
@@ -34,6 +39,9 @@ def mouseHandler(event, x, y, flags, param):
         if len(pts_src) < 4:
             pts_src = np.append(pts_src, [(x, y)], axis=0)
 
+"""
+Given an image frame, display the image, prompting the user to select rectangular region
+"""
 def drawRegionCorners(frame):
     cv2.namedWindow("image", 1)
     im_temp = copy(frame)
@@ -45,6 +53,9 @@ def drawRegionCorners(frame):
 
     return im_temp, pts_src
 
+"""
+Given the four user-chosen points, return corners of approximated rectangular region
+"""
 def getCorners(pts_src):
     min_x = float("inf")
     max_x = -1
@@ -59,6 +70,9 @@ def getCorners(pts_src):
 
     return [min_x, max_x, min_y, max_y]
 
+"""
+Computer mean HSV value coordinates of corners of region
+"""
 def getHSVThreshold(hsv, min_x, max_x, min_y, max_y):
     m = 0
     for i in range(min_x, max_x + 1):
@@ -68,7 +82,10 @@ def getHSVThreshold(hsv, min_x, max_x, min_y, max_y):
     
     return m
 
-
+"""
+Remove noise and small artifacts from binary image
+by applying Gaussian blur, erosion and dilation
+"""
 def filter(mask):
     # Gaussian blur
     blur = cv2.GaussianBlur(mask, (5,5), 0)
@@ -78,6 +95,9 @@ def filter(mask):
     final = cv2.morphologyEx(blur, cv2.MORPH_OPEN, kernel)
     return final
 
+"""
+Return coordinates of centroid and area of largest blob in a binary image
+"""
 def findLargestBlob(bin_img):
     x_avg = 0
     y_avg = 0
@@ -107,22 +127,22 @@ def findLargestBlob(bin_img):
 
 
 def main():
+    # Initialize camera and capture first frame
     camera = PiCamera()
     camera.resolution = (320, 240)
     rawCapture = picamera.array.PiRGBArray(camera)
     camera.capture(rawCapture, 'bgr')
     frame = rawCapture.array
     
+    # Prompt user for region to track
     im_region, pts_src = drawRegionCorners(frame)
 
+    # Calculate corners of a rectangle from input region
     [min_x, max_x, min_y, max_y] = getCorners(pts_src)
 
     cv2.destroyAllWindows()
-    # imcopy = frame.copy()
-    # cv2.rectangle(imcopy, (min_x,min_y), (max_x, max_y), (0, 255, 255))
-    # cv2.imshow("region", imcopy)
-    # cv2.waitKey(0)
 
+    # Threshold the image based on average hue of region
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     hsv_mean = getHSVThreshold(hsv, min_x, max_x, min_y, max_y)
     lower_color = np.array([hsv_mean-10, 50, 50])
@@ -130,6 +150,7 @@ def main():
     mask = cv2.inRange(hsv, lower_color, upper_color)
     #cv2.imshow("mask", mask)
 
+    # Filter the mask and display centroid overlayed onto original frame
     final = filter(mask)
     (cx, cy, p_area) = findLargestBlob(final)
     res = cv2.bitwise_and(frame, frame, mask=mask)
@@ -137,7 +158,9 @@ def main():
     cv2.imshow("centroid", res)
     #cv2.waitKey(0)
 
+    # Main while loop so GoPiGo continually tracks object
     while not camera.closed:
+        # Capture new image, threshold, filter and compute new centroid and area
         rawCapture = picamera.array.PiRGBArray(camera)
         camera.capture(rawCapture, 'bgr')
         frame = rawCapture.array
@@ -148,6 +171,7 @@ def main():
         cv2.circle(frame, (cx, cy), 3, (0, 255, 255), 5, cv2.LINE_AA)
         cv2.imshow("centroid", frame)
 
+        # Move robot according to newly measured centroid and area
         if (len(frame[0]) / 2 - cx > 30):
             my_left(len(frame[0]) / 2 - cx)
         elif (len(frame[0]) / 2 - cx < -30):
@@ -162,6 +186,8 @@ def main():
         # hit the quit key "q" to exit and close everything
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+    
+    # Exit
     camera.close()
     cv2.destroyAllWindows()
 
