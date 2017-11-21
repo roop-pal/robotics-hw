@@ -147,7 +147,8 @@ def main():
     robot_pos = np.array([width / 2, 0, 1])
     roadway_point = transform.dot(robot_pos)
     roadway_x_top = int(roadway_point[0]/roadway_point[2])
-    roadway_y_top = int(roadway_point[1]/roadway_point[2])  
+    roadway_y_top = int(roadway_point[1]/roadway_point[2])
+    robot_theta = np.arctan((roadway_x_top - roadway_x_bot) * 1.0 / (roadway_y_top - roadway_y_bot))
         
     while True:
         im_roadway = cv2.warpPerspective(frame, transform,(width,height))
