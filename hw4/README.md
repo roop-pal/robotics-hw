@@ -48,15 +48,15 @@ distance_to_camera_from_homography = 31cm
 3) The robot line's theta was compared to the hough line's theta.
 4) If there is an orange blob above a minimum area, turn 180. If there are no lines, turn right. There are then 9 cases by the combination of angle offset being negative, positive, or below thresholds (equal) and dist offset being negative, positive, or below thresholds (equal). L means left, R means right, F means forward.
 - Positive angle
- - Positive dist: LF
- - Negative dist: FL
- - Equal    dist: L
+  - Positive dist: LF
+  - Negative dist: FL
+  - Equal    dist: L
 - Negative angle
- - Positive dist: FR
- - Negative dist: RF
- - Equal    dist: R
+  - Positive dist: FR
+  - Negative dist: RF
+  - Equal    dist: R
 - Equal
- - Positive dist: LFR
- - Negative dist: RFL
- - Equal    dist: F
+  - Positive dist: LFR
+  - Negative dist: RFL
+  - Equal    dist: F
 5) It defines the robot's position.
