@@ -111,7 +111,7 @@ def checkOrange(hsv_frame):
     mask = cv2.inRange(hsv_frame, lower_color, upper_color)
     final = filter(mask)
     cv2.imshow("orange", final)
-    cv2.imwrite("ta_supplied_image_set/stop_sign_filtered.jpg", final)
+    cv2.imwrite("student_captured_image_set/stop_sign_filtered.jpg", final)
     p_area = findLargestBlobArea(final)
     
     return p_area > ORANGE_AREA_THRESH
@@ -121,7 +121,7 @@ def main():
     # Initialize camera and capture first frame
     width = 320
     height = 240
-    frame = cv2.imread("ta_supplied_image_set/homography_calibration.jpg")
+    frame = cv2.imread("student_captured_image_set/homography_calibration.jpg")
     
     # Prompt user for homography points
     im_source, pts_src = drawRegionCorners(frame)
@@ -135,11 +135,11 @@ def main():
     
     transform, status = cv2.findHomography(pts_src, pts_roadway)
 
-    frame = cv2.imread("ta_supplied_image_set/original_image.jpg")
+    frame = cv2.imread("student_captured_image_set/original_image.jpg")
 
     while True:
         im_roadway = cv2.warpPerspective(frame, transform,(width,height))
-        cv2.imwrite("ta_supplied_image_set/homography_applied.jpg", im_roadway)
+        cv2.imwrite("student_captured_image_set/homography_applied.jpg", im_roadway)
 
         # Transform the robot position points
         robot_pos = np.array([width / 2, height * (22.5+13.5)/22.5, 1])
@@ -161,7 +161,7 @@ def main():
         mask = cv2.inRange(hsv, lower_color, upper_color)
         final = filter(mask)
         cv2.imshow("final", final)
-        cv2.imwrite("ta_supplied_image_set/yellow_color_filtered.jpg", final)
+        cv2.imwrite("student_captured_image_set/yellow_color_filtered.jpg", final)
         
          
         edges = cv2.Canny(final, 100, 200)
@@ -183,7 +183,7 @@ def main():
                 y2 = int(y0 - 1000*(a))
                 cv2.line(im_roadway, (x1,y1), (x2,y2), (0,0,255),2)
 
-        cv2.imwrite("ta_supplied_image_set/calculated_hough_lines.jpg", im_roadway)
+        cv2.imwrite("student_captured_image_set/calculated_hough_lines.jpg", im_roadway)
     
         if checkOrange(hsv):  # orange found
             sleep(0.7)
@@ -204,6 +204,7 @@ def main():
         break
     print 'homography_transform_matrix = '
     print transform
+    print "distance_to_camera_from_homography = 31"
     cv2.destroyAllWindows()
 
     # Exit
