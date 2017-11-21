@@ -15,10 +15,13 @@ homography_transform_matrix = <matrix>
 distance_to_camera_from_homography = <distance in cm>
 
 ##Values calculated from student_captured_image_set
-calculated_angle_offset = <angle_offset>
-calculated_distance_offset = <distance_offset in cm>
-homography_transform_matrix = <matrix>
-distance_to_camera_from_homography = <distance in cm>
+calculated_angle_offset =  -76.96 degrees
+calculated_distance_offset =  -28.13
+homography_transform_matrix = 
+[[  9.11029639e+00   8.21713008e+00  -1.05715165e+03]
+ [ -2.32918087e-01   3.77327301e+01  -2.66691210e+03]
+ [ -2.52054754e-03   5.80161563e-02   1.00000000e+00]]
+distance_to_camera_from_homography = 31
 
 ##Questions:
 1) Describe the overall architecture of your implementation.
