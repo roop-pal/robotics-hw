@@ -1,0 +1,6 @@
+calculated_angle_offset =  0.0238050261851
+calculated_distance_offset =  6.0
+homography_transform_matrix = 
+[[ -2.42374039e+01  -3.28214844e+01   4.40211848e+03]
+ [  2.01931104e+00  -1.17120040e+02   8.98189549e+03]
+ [  6.44607060e-03  -1.98744536e-01   1.00000000e+00]]
