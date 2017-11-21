@@ -137,23 +137,24 @@ def main():
 
     frame = cv2.imread("student_captured_image_set/original_image.jpg")
 
+    # Transform the robot position points
+    robot_pos = np.array([width / 2, height * (22.5+13.5)/22.5, 1])
+    roadway_point = transform.dot(robot_pos)
+    roadway_x_bot = int(roadway_point[0]/roadway_point[2])
+    roadway_y_bot = int(roadway_point[1]/roadway_point[2])
+
+    # Transform the robot position points
+    robot_pos = np.array([width / 2, 0, 1])
+    roadway_point = transform.dot(robot_pos)
+    roadway_x_top = int(roadway_point[0]/roadway_point[2])
+    roadway_y_top = int(roadway_point[1]/roadway_point[2])  
+        
     while True:
         im_roadway = cv2.warpPerspective(frame, transform,(width,height))
-        cv2.imwrite("student_captured_image_set/homography_applied.jpg", im_roadway)
+#         cv2.imwrite("student_captured_image_set/homography_applied.jpg", im_roadway)
 
-        # Transform the robot position points
-        robot_pos = np.array([width / 2, height * (22.5+13.5)/22.5, 1])
-        roadway_point = transform.dot(robot_pos)
-        roadway_x_bot = int(roadway_point[0]/roadway_point[2])
-        roadway_y_bot = int(roadway_point[1]/roadway_point[2])
         
-        # Transform the robot position points
-        robot_pos = np.array([width / 2, 0, 1])
-        roadway_point = transform.dot(robot_pos)
-        roadway_x_top = int(roadway_point[0]/roadway_point[2])
-        roadway_y_top = int(roadway_point[1]/roadway_point[2])  
-        
-    #     cv2.imshow("homography", im_roadway)
+        cv2.imshow("homography", im_roadway)
             
         hsv = cv2.cvtColor(im_roadway, cv2.COLOR_BGR2HSV)
         lower_color = np.array([YELLOW_HUE-10, 230, 100])
@@ -161,18 +162,25 @@ def main():
         mask = cv2.inRange(hsv, lower_color, upper_color)
         final = filter(mask)
         cv2.imshow("final", final)
-        cv2.imwrite("student_captured_image_set/yellow_color_filtered.jpg", final)
+#         cv2.imwrite("student_captured_image_set/yellow_color_filtered.jpg", final)
         
          
         edges = cv2.Canny(final, 100, 200)
         cv2.imshow("edges", edges)
-    #     cv2.waitKey(0)
+        cv2.waitKey(0)
         lines = cv2.HoughLines(edges, 1, np.pi/180, 60)
         dist, angl = 0, 0
         for l in lines:
             for rho, theta in l:
-                dist = rho
-                angl = theta
+                if theta > np.pi / 2:
+                    angl += np.pi - theta
+                else:
+                    angl += theta
+                if rho < 0:
+                    dist -= rho
+                else:
+                    dist += rho
+                print rho, theta
                 a = np.cos(theta)
                 b = np.sin(theta)
                 x0 = a*rho
@@ -182,8 +190,16 @@ def main():
                 x2 = int(x0 - 1000*(-b))
                 y2 = int(y0 - 1000*(a))
                 cv2.line(im_roadway, (x1,y1), (x2,y2), (0,0,255),2)
+        dist /= len(lines)
+        angl /= len(lines)
+        
+        x = dist * np.cos(angl)
+        print "x",x
+        dist_offset = roadway_x_bot - x
+        angl_offset = (robot_theta - angl) *  180 / np.pi 
+        print "offsets", dist_offset, angl_offset
 
-        cv2.imwrite("student_captured_image_set/calculated_hough_lines.jpg", im_roadway)
+#         cv2.imwrite("student_captured_image_set/calculated_hough_lines.jpg", im_roadway)
     
         if checkOrange(hsv):  # orange found
             sleep(0.7)
