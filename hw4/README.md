@@ -1,8 +1,12 @@
 #Lab 4
+
 ###Group 24 [qv2106, rmp2191, yh2886]
+
 ###Youtube link: https://www.youtube.com/watch?v=DdURFlCAmps?vik
 
+
 You can find our main in lane_follower.py.
+
 We made the following assumptions about our robot/environment: 
 - Colors/lighting fit hardcoded color thresholds for yellow and orange
 - Track's blue dots are accurate for picking points for homography
