@@ -1,5 +1,5 @@
-calculated_angle_offset =  0.0123450518442
-calculated_distance_offset =  112.666052815
+calculated_angle_offset =  -16.27 degrees
+calculated_distance_offset =  144.203
 homography_transform_matrix = 
 [[ -1.00673524e+02  -1.27382827e+02   1.73857013e+04]
  [  5.49623552e+00  -4.83668726e+02   3.73194392e+04]
