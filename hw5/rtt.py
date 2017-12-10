@@ -7,7 +7,7 @@ import math
 
 
 DIM = 600
-N = 10
+N = 200
 
 class Node:
     def __init__(self, x, y, parent):
@@ -94,7 +94,7 @@ def build_rrt(start, goal, step, lc, obstacles):
 
 
 
-def extend_rrt(points_list, q_rand, step):
+def extend_rrt(points_list, q_rand, step, obstacles):
     q_near = None
     minDist = DIM*2
     
@@ -119,8 +119,22 @@ def extend_rrt(points_list, q_rand, step):
         return Node(q_newx, q_newy, q_near)
     return None
 
+
 def check_collision(q1, q2, obstacles):
+    for border in obstacles:
+        b1 = border[0]
+        b2 = border[1]
+        if intersect(q1, q2, b1, b2):
+            return True
     return False
+
+
+def intersect(a, b, c, d):
+    if orientation(a, c, d) == orientation(b, c, d):
+        return False
+    elif orientation(a, b, c) == orientation(a, b, d):
+        return False
+    return True
 
 
 if __name__ == '__main__':
