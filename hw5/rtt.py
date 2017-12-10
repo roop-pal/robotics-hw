@@ -7,7 +7,7 @@ import math
 
 
 DIM = 600
-N = 500
+N = 10
 
 class Node:
     def __init__(self, x, y, parent):
@@ -63,22 +63,27 @@ def get_start_and_end():
 
     return [(startx, starty), (endx, endy)]
 
+
 def update_plot(lc, q1, q2):
-    plt.scatter(q1[0], q1[1], color='black')
+    plt.scatter(q1[0], q1[1], color='black', s=[10])
     segs = lc.get_segments()
     segs.append([q1, q2])
     lc.set_segments(segs)
     plt.pause(0.05)
 
-def build_rrt(start, goal, step, lc):
+
+def build_rrt(start, goal, step, lc, obstacles):
     root = Node(start[0], start[1], None)
     points_list = [start]
 
     for i in range(N):
-        q_rand = random.random()*DIM, random.random()*DIM
+        if random.random() <= 0.05:
+            q_rand = goal
+        else:
+            q_rand = random.random()*DIM, random.random()*DIM
         #print 'q_rand', q_rand
         #print points_list
-        q_new = extend_rrt(points_list, q_rand, step)
+        q_new = extend_rrt(points_list, q_rand, step, obstacles)
         if q_new != None:
             points_list.append(q_new.xy)
             update_plot(lc, q_new.xy, q_new.parent)
@@ -110,11 +115,11 @@ def extend_rrt(points_list, q_rand, step):
     q_new = (q_newx, q_newy)
     #print 'q_new', q_new
 
-    if check_collision(q_new, q_near) == False:
+    if check_collision(q_new, q_near, obstacles) == False:
         return Node(q_newx, q_newy, q_near)
     return None
 
-def check_collision(q1, q2):
+def check_collision(q1, q2, obstacles):
     return False
 
 
@@ -124,21 +129,21 @@ if __name__ == '__main__':
         distance = int(sys.argv[1])
     print "DISTANCE set as " + str(distance)
 
-    segs = get_obstacles()
+    obstacles = get_obstacles()
     endpoints = get_start_and_end()
     endpoints_x, endpoints_y = zip(*endpoints)
     plt.scatter(endpoints_x, endpoints_y, color='r')
 
-    obstacles = mc.LineCollection(segs, color='b')
+    obstacles_lc = mc.LineCollection(obstacles, color='b')
     paths = mc.LineCollection([], color='black')
 
     ax = plt.axes()
-    ax.add_collection(obstacles)
+    ax.add_collection(obstacles_lc)
     ax.add_collection(paths)
     ax.autoscale()
     plt.ion()
     plt.gca().invert_yaxis()
 
-    build_rrt(endpoints[0], endpoints[1], distance, paths)
+    build_rrt(endpoints[0], endpoints[1], distance, paths, obstacles)
     plt.ioff()
     plt.show()
