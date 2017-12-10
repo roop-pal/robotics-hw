@@ -66,68 +66,87 @@ def get_start_and_end():
     return [(startx, starty), (endx, endy)]
 
 
-def update_plot(lc, q1, q2):
+def update_plot(paths, q1, q2):
     plt.scatter(q1[0], q1[1], color='black', s=[10])
-    segs = lc.get_segments()
+    segs = paths.get_segments()
     segs.append([q1, q2])
-    lc.set_segments(segs)
+    paths.set_segments(segs)
     plt.pause(0.05)
 
 
-def build_rrt(start, goal, step, lc, obstacles):
-    root = Node(start[0], start[1], None)
-    points_list = [start]
+def highlight_path(goal):
+    currNode = goal
+    path = []
+    while currNode.parent != None:
+        #plt.scatter(currNode.x, currNode.y, color='yellow', s=[10])
+        path.append([currNode.xy, currNode.parent.xy])
+        currNode = currNode.parent
+        
+    lc = mc.LineCollection(path, color='yellow')
+    ax = plt.axes()
+    ax.add_collection(lc)
 
-    for i in range(N):
+def build_rrt(start, goal, step, paths, obstacles):
+    root = Node(start[0], start[1], None)
+    points_list = [root]
+
+    while True:
         if random.random() <= 0.05:
             q_rand = goal
         else:
             q_rand = random.random()*DIM, random.random()*DIM
-        #print 'q_rand', q_rand
-        #print points_list
-        q_new = extend_rrt(points_list, q_rand, step, obstacles)
+
+        q_new = extend_rrt(points_list, q_rand, step, obstacles, paths.get_segments())
         if q_new != None:
-            points_list.append(q_new.xy)
-            update_plot(lc, q_new.xy, q_new.parent)
+            points_list.append(q_new)
+            update_plot(paths, q_new.xy, q_new.parent.xy)
 
             if dist(q_new.xy, goal) <= step:
-                update_plot(lc, q_new.xy, goal)
+                update_plot(paths, q_new.xy, goal)
+                goal_node = Node(goal[0], goal[1], q_new)
+                highlight_path(goal_node)
                 break
 
 
 
-def extend_rrt(points_list, q_rand, step, obstacles):
+def extend_rrt(points_list, q_rand, step, obstacles, paths):
     q_near = None
     minDist = DIM*2
     
     # find closest neighbor
     for q in points_list:
-        d = dist(q, q_rand)
+        d = dist(q.xy, q_rand)
         if d < minDist:
             minDist = d
             q_near = q
     #print 'q_near', q_near
+    if dist(q_rand, q_near.xy) < step:
+        return None
 
-    dx = q_rand[0] - q_near[0]
-    dy = q_rand[1] - q_near[1]
+    dx = q_rand[0] - q_near.x
+    dy = q_rand[1] - q_near.y
     mag = math.sqrt(math.pow(dx,2) + math.pow(dy,2))
 
-    q_newx = q_near[0] + step*dx/mag
-    q_newy = q_near[1] + step*dy/mag
+    q_newx = q_near.x + step*dx/mag
+    q_newy = q_near.y + step*dy/mag
     q_new = (q_newx, q_newy)
     #print 'q_new', q_new
 
-    if check_collision(q_new, q_near, obstacles) == False:
+    if check_collision(q_new, q_near.xy, obstacles, paths) == False:
         return Node(q_newx, q_newy, q_near)
     return None
+
+    #return Node(q_newx, q_newy, q_near)
+    
 
 def orientation(a, b, c):
     if ((b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1])) > 0:
         return 1
     return -1
         
-def check_collision(q1, q2, obstacles):
-    for border in obstacles:
+def check_collision(q1, q2, obstacles, paths):
+    borders = obstacles #+ paths
+    for border in borders:
         b1 = border[0]
         b2 = border[1]
         if intersect(q1, q2, b1, b2):
