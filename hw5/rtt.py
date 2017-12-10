@@ -12,6 +12,8 @@ N = 10
 class Node:
     def __init__(self, x, y, parent):
         self.xy = (x,y)
+        self.x = x
+        self.y = y
         self.parent = parent
 
 def my_y(y):
@@ -118,6 +120,12 @@ def extend_rrt(points_list, q_rand, step):
     if check_collision(q_new, q_near, obstacles) == False:
         return Node(q_newx, q_newy, q_near)
     return None
+
+def orientation(a, b, c):
+    if ((b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1])) > 0:
+        return 1
+    return -1
+        
 
 def check_collision(q1, q2, obstacles):
     return False
