@@ -139,11 +139,15 @@ while itr <= param.max_itr
             ind = find(dist_min_c2==dist);
             pp = p_a(ind,:);
             pp2 = p2;
+            flg_m = 0;
+            flg_b = 1;
         else
             dist = dist_min_c;
             ind = find(dist_min_c==dist);
             pp = p;
             pp2 = p2_a(ind,:);
+            flg_m = 1;
+            flg_b = 0;
         end
 
         fprintf('Nodes:   %d, Distance: %.1f, Iterations: %d\n',length(rrt),dist,itr)
@@ -169,6 +173,12 @@ while itr <= param.max_itr
         rrt = Add_node(rrt,p2,length(rrt));
         rrt2 = Add_node(rrt2,p,length(rrt2));
         
+        if flg_m==1
+            plot([p2(1,1),p(1,1)],[p2(1,2),p(1,2)],'m','LineWidth',3);
+        else
+            plot([p2(1,1),p(1,1)],[p2(1,2),p(1,2)],'b','LineWidth',3);
+        end
+              
         % construct the shortest path fromt the start
         i = length(rrt);
         path = rrt{i}.p;
@@ -179,7 +189,7 @@ while itr <= param.max_itr
             end
             path = [rrt{i}.p; path];
         end
-        
+                
         % construct the shortest path from the goal and exit with success
         i = length(rrt2);
         path2 = rrt2{i}.p;
