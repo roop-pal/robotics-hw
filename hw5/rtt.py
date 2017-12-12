@@ -230,10 +230,10 @@ if __name__ == '__main__':
     if len(sys.argv) == 5:
         build_bi_rrt(endpoints[0], endpoints[1], distance, paths_start, paths_goal, obstacles)
         plt.ioff()
-        plt.savefig('rrt-bi.png')
+        plt.savefig('rtt-bi.png')
     else:
         build_rrt(endpoints[0], endpoints[1], distance, paths_start, obstacles)
         plt.ioff()
-        plt.savefig('rrt.png')
+        plt.savefig('rtt.png')
 
     plt.show()
