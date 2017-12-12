@@ -22,8 +22,8 @@ The script expects command-line arguments in the following format:
 
 -b is an optional argument specifying the program to run bidirecitonal RRT. For example, to run the homework files with step size 20:
 
-`python rtt.py 20 world_obstacles.txt start_goal.txt`
+`python rtt.py 40 world_obstacles.txt start_goal.txt`
 
 or
 
-`python rtt.py 20 world_obstacles.txt start_goal.txt -b`
+`python rtt.py 40 world_obstacles.txt start_goal.txt -b`
