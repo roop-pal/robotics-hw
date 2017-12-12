@@ -7,7 +7,7 @@ import math
 
 
 DIM = 600
-N = 200
+N = 1000000
 
 class Node:
     def __init__(self, x, y, parent):
@@ -16,17 +16,13 @@ class Node:
         self.y = y
         self.parent = parent
 
-def my_y(y):
-    return DIM-y
-
 def dist(xy1, xy2):
     x1, y1 = xy1
     x2, y2 = xy2
     return math.sqrt(math.pow(x1-x2, 2) + math.pow(y1-y2, 2))
 
-
-def get_obstacles():
-    f = open("world_obstacles.txt", 'r')
+def get_obstacles(obstacle_file):
+    f = open(obstacle_file, 'r')
     
     segments = []
     num_obstacles = int(f.readline())
@@ -35,7 +31,6 @@ def get_obstacles():
         vertices = []
         for j in range(num_vertices):
             x,y = f.readline().split()
-            #vertices.append((int(x), my_y(int(y))))
             vertices.append((int(x), int(y)))
         for j in range(1,num_vertices):
             v1 = vertices[j-1]
@@ -48,17 +43,15 @@ def get_obstacles():
     f.close()
     return segments
 
-def get_start_and_end():
-    f = open("start_goal.txt", 'r')
+def get_start_and_end(start_goal_file):
+    f = open(start_goal_file, 'r')
 
     startline = f.readline().split()
     endline = f.readline().split()
 
     startx = int(startline[0])
-    #starty = my_y(int(startline[1]))
     starty = int(startline[1])
     endx = int(endline[0])
-    #endy = my_y(int(endline[1]))
     endy = int(endline[1])
 
     f.close()
@@ -66,8 +59,12 @@ def get_start_and_end():
     return [(startx, starty), (endx, endy)]
 
 
-def update_plot(paths, q1, q2):
-    plt.scatter(q1[0], q1[1], color='black', s=[10])
+def update_plot(paths, q1, q2, fromStart):
+    if fromStart:
+        c = 'black'
+    else:
+        c = 'magenta'
+    plt.scatter(q1[0], q1[1], color=c, s=[10])
     segs = paths.get_segments()
     segs.append([q1, q2])
     paths.set_segments(segs)
@@ -90,7 +87,7 @@ def build_rrt(start, goal, step, paths, obstacles):
     root = Node(start[0], start[1], None)
     points_list = [root]
 
-    while True:
+    for i in range(N):
         if random.random() <= 0.05:
             q_rand = goal
         else:
@@ -99,15 +96,13 @@ def build_rrt(start, goal, step, paths, obstacles):
         q_new = extend_rrt(points_list, q_rand, step, obstacles, paths.get_segments())
         if q_new != None:
             points_list.append(q_new)
-            update_plot(paths, q_new.xy, q_new.parent.xy)
+            update_plot(paths, q_new.xy, q_new.parent.xy, True)
 
             if dist(q_new.xy, goal) <= step:
-                update_plot(paths, q_new.xy, goal)
+                update_plot(paths, q_new.xy, goal, True)
                 goal_node = Node(goal[0], goal[1], q_new)
                 highlight_path(goal_node)
                 break
-
-
 
 def extend_rrt(points_list, q_rand, step, obstacles, paths):
     q_near = None
@@ -119,7 +114,6 @@ def extend_rrt(points_list, q_rand, step, obstacles, paths):
         if d < minDist:
             minDist = d
             q_near = q
-    #print 'q_near', q_near
     if dist(q_rand, q_near.xy) < step:
         return None
 
@@ -130,14 +124,53 @@ def extend_rrt(points_list, q_rand, step, obstacles, paths):
     q_newx = q_near.x + step*dx/mag
     q_newy = q_near.y + step*dy/mag
     q_new = (q_newx, q_newy)
-    #print 'q_new', q_new
 
     if check_collision(q_new, q_near.xy, obstacles, paths) == False:
         return Node(q_newx, q_newy, q_near)
     return None
 
-    #return Node(q_newx, q_newy, q_near)
-    
+def build_bi_rrt(start, goal, step, paths_start, paths_goal, obstacles):
+    root_start = Node(start[0], start[1], None)
+    root_goal = Node(goal[0], goal[1], None)
+    start_points_list = [root_start]
+    goal_points_list = [root_goal]
+
+    fromStart = True
+    for i in range(N):
+        if fromStart:
+            currGoal = goal
+            goals_list = goal_points_list
+            points_list = start_points_list
+            p = paths_start
+        else:
+            currGoal = start
+            goals_list = start_points_list
+            points_list = goal_points_list
+            p = paths_goal
+
+        if random.random() <= 0.05:
+            q_rand = currGoal
+        else:
+            q_rand = random.random()*DIM, random.random()*DIM
+
+        q_new = extend_rrt(points_list, q_rand, step, obstacles, p.get_segments())
+        if q_new != None:
+            points_list.append(q_new)
+            update_plot(p, q_new.xy, q_new.parent.xy, fromStart)
+
+            found_goal = False
+            for g in goals_list:
+                if dist(q_new.xy, g.xy) <= step:
+                    update_plot(p, q_new.xy, g.xy, fromStart)
+                    goal_node = Node(g.x, g.y, q_new)
+                    highlight_path(goal_node)
+                    highlight_path(g)
+                    found_goal = True
+                    break
+            if found_goal:
+                break
+            fromStart = not fromStart
+
 
 def orientation(a, b, c):
     if ((b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1])) > 0:
@@ -164,25 +197,43 @@ def intersect(a, b, c, d):
 
 if __name__ == '__main__':
     distance = 5
-    if len(sys.argv) > 1:
-        distance = int(sys.argv[1])
+    if len(sys.argv) < 4 or len(sys.argv) > 5:
+        print "Invalid number of arguments. Usage: python rtt.py <distance> <obstacles-file> <start-goal-file> <-b>"
+        sys.exit(1)
+
+    if len(sys.argv) == 5 and sys.argv[4] != '-b':
+        print "Invalid argument"
+        sys.exit(1)
+
+    distance = int(sys.argv[1])
     print "DISTANCE set as " + str(distance)
 
-    obstacles = get_obstacles()
-    endpoints = get_start_and_end()
+    # Read in obstacles and plot world
+    obstacles = get_obstacles(sys.argv[2])
+    endpoints = get_start_and_end(sys.argv[3])
     endpoints_x, endpoints_y = zip(*endpoints)
     plt.scatter(endpoints_x, endpoints_y, color='r')
 
     obstacles_lc = mc.LineCollection(obstacles, color='b')
-    paths = mc.LineCollection([], color='black')
+    paths_start = mc.LineCollection([], color='black')
+    paths_goal = mc.LineCollection([], color='magenta')
 
     ax = plt.axes()
     ax.add_collection(obstacles_lc)
-    ax.add_collection(paths)
+    ax.add_collection(paths_start)
+    ax.add_collection(paths_goal)
     ax.autoscale()
     plt.ion()
     plt.gca().invert_yaxis()
 
-    build_rrt(endpoints[0], endpoints[1], distance, paths, obstacles)
-    plt.ioff()
+    # Run RTT
+    if len(sys.argv) == 5:
+        build_bi_rrt(endpoints[0], endpoints[1], distance, paths_start, paths_goal, obstacles)
+        plt.ioff()
+        plt.savefig('rrt-bi.png')
+    else:
+        build_rrt(endpoints[0], endpoints[1], distance, paths_start, obstacles)
+        plt.ioff()
+        plt.savefig('rrt.png')
+
     plt.show()
