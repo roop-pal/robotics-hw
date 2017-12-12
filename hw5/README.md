@@ -1,4 +1,5 @@
 #Lab 5
+
 ###Group 24 [qv2106, rmp2191, yh2886]
 
 You can find our main in rrt.py. This was written for Python2.7.
@@ -16,9 +17,10 @@ Any special assumption we made are:
 Images of sample results are stored in rrt.png and rrt-bi.png for non-bidirectional and bidirectional runs respectively.
 
 The script expects command-line arguments in the following format:
-'python rtt.py <distance> <obstacles-file> <start-goal-file> <-b>'
+`python rtt.py <distance> <obstacles-file> <start-goal-file> <-b>`
 
 -b is an optional argument specifying the program to run bidirecitonal RRT. For example, to run the homework files with step size 20:
-'python rtt.py 20 world_obstacles.txt start_goal.txt'
+
+`python rtt.py 20 world_obstacles.txt start_goal.txt`
 or
-'python rtt.py 20 world_obstacles.txt start_goal.txt -b'
+`python rtt.py 20 world_obstacles.txt start_goal.txt -b`
